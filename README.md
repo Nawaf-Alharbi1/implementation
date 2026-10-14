@@ -1,86 +1,75 @@
-## التشغيل
+# THIQA — Car Insurance Recommendation Demo
 
-**أول مرة فقط (تثبيت المكتبات):**
+THIQA is a university graduation-project prototype for personalized car-insurance recommendations. It demonstrates a three-agent pipeline using **mock insurer APIs** and sample prices. These prices are simulated and are **not real quotes from Saudi insurers**.
 
-```
-cd agents  && pip install -r requirements.txt
-cd server  && npm install
-```
+## Architecture
 
-**كل مرة:** من مجلد المشروع شغّل
+1. **Agent 1 — Data Receiver & Retrieval:** validates the request, calls the mock insurer endpoints in parallel, and normalizes the returned offers.
+2. **Agent 2 — Recommendation:** filters eligible offers and ranks them using weighted criteria and the selected priority.
+3. **Agent 3 — Explainer:** returns a plain-language explanation of the selected offer.
+4. **Node.js / Express:** serves the website and forwards `POST /api/recommend` to the Python agents service.
 
-```
-./run-website.bat
-```
+## Run locally (Windows)
 
-ويفتح 3 خدمات: Mock Insurers (8001) + Agents (8000) + الموقع (3000)، ثم افتح http://localhost:3000
+### First-time setup
 
-> قاعدة البيانات (SQLite) تُنشأ تلقائياً في `database/thiqa.db` عند أول تشغيل.
-> في الإنتاج اضبط متغير البيئة `JWT_SECRET` بقيمة سرية طويلة.
+Install Python 3.10+ and Node.js, then run these commands from the repository folder:
 
-## اختبار Agent 1 بشكل مستقل
-
-```
+```bat
 cd agents
-python -m pytest tests -v        # 43 اختباراً، لا تحتاج تشغيل أي سيرفر
+python -m pip install -r requirements.txt
+cd ..\server
+npm install
+cd ..
 ```
 
-أو تشغيله وحده عبر HTTP (بعد تشغيل خدمتي 8000 و 8001) من Swagger: http://localhost:8000/docs ← `POST /agent1/retrieve`
+### Start the demo
 
-**حقن أعطال في شركات التأمين التجريبية** (لتجربة معالجة الأخطاء يدوياً):
+Double-click `run-website.bat`. It opens separate terminal windows for:
+- Mock insurer APIs: `http://127.0.0.1:8001`
+- Python agents: `http://127.0.0.1:8000`
+- Website: `http://localhost:3000`
 
-```
-curl -X POST localhost:8001/_mock/faults -H "Content-Type: application/json" -d "{\"provider_id\":\"acig\",\"fault\":\"timeout\"}"
-curl -X DELETE localhost:8001/_mock/faults        # إزالة كل الأعطال
-```
-الأنواع: `timeout | 500 | 503 | bad_json | empty | malformed`
+Open `http://localhost:3000` in your browser. Keep all three terminal windows open while testing.
 
-## هيكل المجلدات
+If the batch file is blocked, start each service manually in a separate terminal from the repository folder:
 
-```
-implementation/
-├── agents/                       # خدمة الوكلاء (Python/FastAPI) — الطبقة 2
-│   ├── main.py                   # POST /recommend  و  POST /agent1/retrieve
-│   ├── agent1_receiver.py        # الوكيل 1: التحقق + الاتصال بالـ APIs بالتوازي + معالجة الأخطاء
-│   ├── insurer_adapters.py       # لكل شركة: بناء الطلب + توحيد الرد (Unified Quote)
-│   ├── insurers_config.py        # إعدادات الاتصال (تقابل جدول API_Settings)
-│   ├── mock_insurer_api.py       # Mock Insurance API (خدمة مستقلة، بورت 8001)
-│   ├── agent2_recommender.py     # الوكيل 2 (لم يتغير)
-│   ├── agent3_explainer.py       # الوكيل 3 (لم يتغير)
-│   ├── tests/test_agent1.py      # اختبارات Agent 1
-│   └── requirements.txt
-├── server/                       # Node.js — الواجهة + المصادقة + البوابة
-│   ├── server.js                 # Express + حماية /api/recommend
-│   ├── auth.js                   # تسجيل / دخول / خروج / me
-│   ├── db.js                     # اتصال SQLite وإنشاء الجداول
-│   └── public/index.html         # الواجهة
-├── database/
-│   ├── thiqa_database.sql        # المخطط الأصلي (MySQL)
-│   ├── schema.sqlite.sql         # نفس الجداول بصيغة SQLite (يُستخدم حالياً)
-│   └── *.png
-└── run-website.bat
+```bat
+cd agents
+python -m uvicorn mock_insurer_api:app --host 127.0.0.1 --port 8001
 ```
 
-## المصادقة (API)
+```bat
+cd agents
+python -m uvicorn main:app --host 127.0.0.1 --port 8000
+```
 
-| المسار | الوصف |
-|---|---|
-| `POST /api/auth/register` | `{username, email, password}` ← ينشئ الحساب ويسجّل الدخول |
-| `POST /api/auth/login` | `{identifier, password}` (البريد أو اسم المستخدم) |
-| `POST /api/auth/logout` | |
-| `GET /api/auth/me` | المستخدم الحالي أو 401 |
+```bat
+cd server
+npm start
+```
 
----
+## Quick health checks
 
-### Tables
-![Tables](database/show-tables&columns.png)
+- Website/server: open `http://localhost:3000/api/health`
+- Python agents: open `http://127.0.0.1:8000/health`
+- Interactive API docs: open `http://127.0.0.1:8000/docs`
 
----
+## Run tests
 
-### Primary Keys
-![Primary Keys](database/show-PK.png)
+```bat
+cd agents
+python -m pytest tests -v
+```
 
----
+Tests use simulated insurer responses; they do not contact real insurance companies.
 
-### Foreign Keys
-![Foreign Keys](database/relations&FK.png)
+## Important current limitations
+
+- **Mock data only:** insurer prices, ratings, and other provider characteristics are demo values. No real insurer API credentials or production insurer integration are included.
+- **Database persistence is not connected to the recommendation flow yet.** The API returns a recommendation, but this demo does not currently save the request, retrieved quotes, selected quote, or explanation to the database.
+- **Login, registration, and an admin dashboard are not implemented in the current server files.** The interface should be treated as a demonstration, not a production service.
+- The web form sends a sample vehicle value by default; edit it to test different values.
+- Do not enter real national ID numbers or other sensitive personal information into this demo.
+
+The prototype demonstrates the three-agent recommendation flow. Database persistence, authentication, and real insurer integration remain implementation tasks.
