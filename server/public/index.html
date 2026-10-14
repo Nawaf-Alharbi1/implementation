@@ -153,7 +153,7 @@
                                 <span class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400">
                                     <i class="fa-solid fa-address-card"></i>
                                 </span>
-                                <input type="text" id="idNumber" required placeholder="مثال: 10XXXXXXXX" maxlength="10" minlength="10"
+                                <input type="text" id="idNumber" required placeholder="مثال: 10XXXXXXXX" maxlength="10" minlength="10" pattern="[12][0-9]{9}" inputmode="numeric" title="أدخل 10 أرقام تبدأ بـ 1 أو 2"
                                     class="w-full pr-11 pl-4 py-3.5 rounded-2xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 font-mono transition">
                             </div>
                         </div>
@@ -214,6 +214,18 @@
                                     <script>for(let i=2008;i>=1950;i--) document.write(`<option value="${i}">${i}</option>`);</script>
                                 </select>
                             </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">سنة صنع المركبة <span class="text-red-500">*</span></label>
+                            <input type="number" id="manufactureYear" min="1990" max="2027" value="2022" required class="w-full py-3.5 px-3 rounded-2xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                            <p class="text-xs text-slate-400 mt-1">قيمة افتراضية تجريبية؛ عدّلها حسب مركبتك.</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">القيمة التقديرية للمركبة (ريال) <span class="text-red-500">*</span></label>
+                            <input type="number" id="vehicleValue" min="5000" max="2000000" step="500" value="85000" required class="w-full py-3.5 px-3 rounded-2xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                            <p class="text-xs text-slate-400 mt-1">قيمة افتراضية تجريبية؛ عدّلها حسب مركبتك.</p>
                         </div>
 
                         <div>
@@ -510,9 +522,13 @@
             
             // Gather values
             currentFormData = {
-                idNumber: document.getElementById('idNumber').value,
-                sequenceNumber: document.getElementById('sequenceNumber').value,
-                birthYear: parseInt(document.getElementById('birthYear').value),
+                idNumber: document.getElementById('idNumber').value.trim(),
+                sequenceNumber: document.getElementById('sequenceNumber').value.trim(),
+                birthDay: document.getElementById('birthDay').value,
+                birthMonth: document.getElementById('birthMonth').value,
+                birthYear: parseInt(document.getElementById('birthYear').value, 10),
+                manufactureYear: parseInt(document.getElementById('manufactureYear').value, 10),
+                vehicleValue: parseFloat(document.getElementById('vehicleValue').value),
                 vehiclePurpose: document.getElementById('vehiclePurpose').value,
                 mileage: document.getElementById('mileage').value,
                 coverageType: document.querySelector('input[name="coverageType"]:checked').value,
@@ -540,7 +556,7 @@
             // Stage 1: Check NCD
             setTimeout(() => {
                 titleEl.innerHTML = "جاري التحقق من الخصومات...";
-                statusEl.innerHTML = "نقوم الآن بالتواصل مع بوابة نجم لحساب سنوات القيادة الآمنة وتطبيق الخصومات المستحقة لك تلقائياً عبر نظام ثقة.";
+                statusEl.innerHTML = "نجهّز بيانات الطلب التجريبي ونبدأ التحقق منها قبل جلب العروض.";
                 stepNcd.innerHTML = `<i class="fa-solid fa-circle-notch animate-spin text-brand-500"></i> فحص خصم نجم`;
                 stepNcd.className = "flex items-center gap-1.5 text-brand-600 font-bold";
             }, 100);
@@ -548,7 +564,7 @@
             // Stage 2: Fetch and align API responses
             setTimeout(() => {
                 titleEl.innerHTML = "جاري جلب أسعار شركات التأمين...";
-                statusEl.innerHTML = "نتصل الآن بقواعد بيانات تسعير شركات التأمين المرخصة لنسحب عروض الأسعار والمزايا المتطابقة مع مواصفات سيارتك.";
+                statusEl.innerHTML = "نتصل بواجهات شركات التأمين التجريبية (Mock APIs) لجلب عروض الأسعار والمزايا.";
                 stepNcd.innerHTML = `<i class="fa-solid fa-circle-check text-brand-500"></i> تم التحقق من نجم`;
                 stepNcd.className = "flex items-center gap-1.5 text-slate-500 font-normal";
 
@@ -559,7 +575,7 @@
             // Stage 3: Dynamic recommendation sorting
             setTimeout(() => {
                 titleEl.innerHTML = "جاري ترتيب التوصيات الأنسب...";
-                statusEl.innerHTML = "مستشار ثقة الذكي يقوم حالياً بمقارنة الأسعار مع المزايا وجودة معالجة المطالبات لاختيار وثيقتك الفائزة.";
+                statusEl.innerHTML = "وكلاء ثقة الثلاثة يرتبون العروض التجريبية وفق المعايير والأولوية التي اخترتها.";
                 stepApi.innerHTML = `<i class="fa-solid fa-circle-check text-indigo-500"></i> تم سحب الأسعار بنجاح`;
                 stepApi.className = "flex items-center gap-1.5 text-slate-500 font-normal";
 
@@ -569,8 +585,9 @@
 
             // Finish and display (waits for the real backend response before switching tabs)
             setTimeout(async () => {
-                await evaluateOffersAndBuildUI();
-                switchTab('tab-results');
+                const succeeded = await evaluateOffersAndBuildUI();
+                if (succeeded) switchTab('tab-results');
+                else switchTab('tab-form');
             }, 3500);
         }
 
@@ -580,13 +597,16 @@
             const priority = currentFormData.userPriority;
 
             const requestBody = {
-                driver_age: userAge,
-                // ملاحظة: نموذج الإدخال الحالي لا يحتوي حقل قيمة السيارة صراحة،
-                // نستخدم قيمة تقديرية افتراضية مؤقتاً (يمكن إضافة الحقل لاحقاً في الفورم)
-                vehicle_value: 85000,
-                coverage_type: currentFormData.coverageType,
+                national_id: currentFormData.idNumber,
+                birth_date: `${currentFormData.birthYear}-${String(currentFormData.birthMonth).padStart(2, '0')}-${String(currentFormData.birthDay).padStart(2, '0')}`,
+                vehicle_serial: currentFormData.sequenceNumber,
+                manufacture_year: currentFormData.manufactureYear,
+                vehicle_value: currentFormData.vehicleValue,
                 purpose_of_use: currentFormData.vehiclePurpose,
+                annual_mileage: currentFormData.mileage,
+                coverage_type: currentFormData.coverageType,
                 priority: priority,
+                requested_add_ons: [],
             };
 
             let apiResult;
@@ -599,11 +619,16 @@
                 apiResult = await res.json();
                 if (!res.ok) throw new Error(apiResult.error || apiResult.detail || 'خطأ من الخادم');
             } catch (err) {
-                alert('تعذر الاتصال بخادم التوصيات: ' + err.message);
-                return;
+                alert('تعذر الحصول على التوصية: ' + err.message + '\\nتأكد من تشغيل خدمات Mock Insurers وAgents والموقع، ثم حاول مجدداً.');
+                return false;
             }
 
             // نربط نتيجة الوكلاء الحقيقية (Python) بعناصر العرض الثابتة (logo, pros, cons)
+            if (!Array.isArray(apiResult.all_offers_ranked) || apiResult.all_offers_ranked.length === 0) {
+                alert('لم تُرجع الخدمة أي عروض مؤهلة. تحقق من بيانات الطلب والخدمات ثم حاول مرة أخرى.');
+                return false;
+            }
+
             finalComputedOffers = apiResult.all_offers_ranked.map(offer => {
                 const visualMeta = mockProviders.find(p => p.id === offer.provider_id) || {};
                 return {
@@ -619,6 +644,7 @@
             window.__lastExplanation = apiResult.explanation;
 
             renderResults(priority);
+            return true;
         }
 
         // Render evaluated results on UI
