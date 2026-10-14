@@ -118,3 +118,20 @@ CREATE TABLE Explanations (
 
     UNIQUE (RecId)
 );
+
+-- 10. Company Offers
+CREATE TABLE Company_Offers (
+    OfferId INT PRIMARY KEY AUTO_INCREMENT,
+    ProviderId INT NOT NULL,
+    OfferName VARCHAR(100) NOT NULL,
+    CoverageType VARCHAR(30) NOT NULL, -- 'TPL' or 'Comprehensive'
+    BasePremiumRate DECIMAL(5,4) NOT NULL, -- Rate as percentage of vehicle value
+    MinPremium DECIMAL(10,2) NOT NULL,
+    Description TEXT,
+    IsActive BOOLEAN NOT NULL DEFAULT 1,
+    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (ProviderId)
+        REFERENCES Insurance_Providers(ProviderId)
+);
