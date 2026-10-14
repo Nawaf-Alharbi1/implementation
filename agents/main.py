@@ -4,8 +4,6 @@
 (Agent1 -> Agent2 -> Agent3) خلف endpoint واحد: POST /recommend
 """
 
-import sqlite3
-import json
 from fastapi import Body, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -14,12 +12,6 @@ from agent1_receiver import DataReceiverAgent, InvalidCustomerData, NoOffersAvai
 from agent2_recommender import RecommendationAgentV2
 from agent3_explainer import ExplainerAgent
 from orchestrator import NoEligibleOffers, coordinate_recommendation
-
-def get_db_connection():
-    """Create a database connection."""
-    conn = sqlite3.connect("../database/thiqa.db")
-    conn.row_factory = sqlite3.Row
-    return conn
 
 app = FastAPI(title="Thiqa Agents Service")
 
