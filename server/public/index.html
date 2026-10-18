@@ -342,6 +342,15 @@
     </footer>
 
     <script>
+	let INSURER_BASE_URL = 'http://127.0.0.1:8001';
+fetch('/api/config').then(r => r.json()).then(cfg => {
+    if (cfg.insurerPlatformUrl) {
+        INSURER_BASE_URL = cfg.insurerPlatformUrl.replace(/\/$/, '');
+        document.querySelectorAll('a[href^="http://127.0.0.1:8001"]').forEach(a => {
+            a.href = a.href.replace('http://127.0.0.1:8001', INSURER_BASE_URL);
+        });
+    }
+}).catch(() => {});
         const mockProviders = [
             { id: 'tawuniya', name: 'التعاونية للتأمين', logo: `<div class="w-12 h-12 bg-emerald-600 text-white font-black rounded-xl flex items-center justify-center text-sm">T</div>` },
             { id: 'rajhi', name: 'الراجحي تكافل', logo: `<div class="w-12 h-12 bg-blue-600 text-white font-black rounded-xl flex items-center justify-center text-sm">R</div>` },
@@ -450,7 +459,7 @@
                 accidents: currentFormData.has_accidents,
                 cars: currentFormData.cars_count
             });
-            return `http://127.0.0.1:8001/${offer.id}?${params.toString()}`;
+            return `${INSURER_BASE_URL}/${offer.id}?${params.toString()}`;
         }
 
         function getPriorityArabic(p) {

@@ -54,7 +54,12 @@ app.post("/api/recommend", async (req, res) => {
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", service: "thiqa-node-server" });
 });
-
+// مسار يزود الواجهة الأمامية برابط منصة شركات التأمين (سواء محلياً أو على Render)
+app.get("/api/config", (req, res) => {
+  res.json({
+    insurerPlatformUrl: process.env.INSURER_PLATFORM_URL || "http://127.0.0.1:8001"
+  });
+});
 app.listen(PORT, () => {
   console.log(`✅ 1. موقع ثقة للتوصية الذكية يعمل على: http://localhost:${PORT}`);
   console.log(`✅ 2. الموقع الجديد المستقل (منصة التأمين 8001): http://127.0.0.1:8001`);
