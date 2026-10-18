@@ -2,15 +2,24 @@
 setlocal
 set "ROOT=%~dp0"
 
-echo Starting Thiqa demo services...
-echo Install Python dependencies first: cd agents ^&^& pip install -r requirements.txt
-echo Install Node dependencies first: cd server ^&^& npm install
+echo Starting Thiqa Ecosystem...
+echo 1. Insurers Platform & Mock APIs (Port 8001)
+echo 2. Thiqa Multi-Agent Service (Port 8000)
+echo 3. Thiqa Recommendation Website (Port 3000)
 
-start "Thiqa Mock Insurers - 8001" cmd /k "cd /d ""%ROOT%agents"" && python -m uvicorn mock_insurer_api:app --host 127.0.0.1 --port 8001"
+:: تشغيل الموقع المستقل لشركات التأمين والـ API على المنفذ 8001
+start "Thiqa Insurers Platform - 8001" cmd /k "cd /d ""%ROOT%agents"" && python -m uvicorn mock_insurer_api:app --host 127.0.0.1 --port 8001"
 timeout /t 2 /nobreak >nul
-start "Thiqa Agents - 8000" cmd /k "cd /d ""%ROOT%agents"" && python -m uvicorn main:app --host 127.0.0.1 --port 8000"
+
+:: تشغيل خدمة الوكلاء الثلاثة على المنفذ 8000
+start "Thiqa Agents Service - 8000" cmd /k "cd /d ""%ROOT%agents"" && python -m uvicorn main:app --host 127.0.0.1 --port 8000"
 timeout /t 2 /nobreak >nul
-start "Thiqa Website - 3000" cmd /k "cd /d ""%ROOT%server"" && npm start"
+
+:: تشغيل موقع ثقة الأساسي على المنفذ 3000
+start "Thiqa Main Web - 3000" cmd /k "cd /d ""%ROOT%server"" && npm start"
 
 timeout /t 3 /nobreak >nul
+
+:: فتح الموقعين معاً في المتصفح
 start "" "http://localhost:3000"
+start "" "http://127.0.0.1:8001"
