@@ -86,7 +86,13 @@ async function sendPasswordReset({ to, username, link, expiresMinutes }) {
       return "smtp";
     } catch (error) {
       console.error("[THIQA] فشل إرسال بريد إعادة التعيين:", error.message);
+      // Do not print a live reset token to server logs when SMTP was configured.
+      throw error;
     }
+  }
+  if (process.env.SMTP_HOST) {
+    console.error("[THIQA] إعدادات SMTP غير مكتملة؛ لم يتم إرسال رسالة الاستعادة.");
+    return "unavailable";
   }
   logToConsole(to, link, expiresMinutes);
   return "console";
