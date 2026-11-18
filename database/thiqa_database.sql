@@ -148,8 +148,21 @@ CREATE TABLE Audit_Log (
     FOREIGN KEY (AdminUserId) REFERENCES Users(UserId)
 );
 
+-- 12) طلبات استعادة كلمة المرور (الرابط مخزَّن مشفّراً SHA-256، لمرة واحدة ولمدة محدودة)
+CREATE TABLE Password_Resets (
+    ResetId     BIGINT      AUTO_INCREMENT PRIMARY KEY,
+    UserId      BIGINT      NOT NULL,
+    TokenHash   CHAR(64)    NOT NULL UNIQUE,
+    CreatedAt   BIGINT      NOT NULL,
+    ExpiresAt   BIGINT      NOT NULL,
+    UsedAt      BIGINT      NULL,
+    RequestIp   VARCHAR(64),
+    FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE CASCADE
+);
+
 -- الفهارس
 CREATE INDEX idx_requests_profile_time ON Quote_Requests(ProfileId, Timestamp);
 CREATE INDEX idx_quotes_request_rank   ON Retrieved_Quotes(RequestId, `Rank`);
 CREATE INDEX idx_sessions_expiry       ON Sessions(ExpiresAt);
 CREATE INDEX idx_audit_time            ON Audit_Log(CreatedAt);
+CREATE INDEX idx_resets_user           ON Password_Resets(UserId, UsedAt);

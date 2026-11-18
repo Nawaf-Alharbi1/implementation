@@ -3,6 +3,26 @@ const bcrypt = require("bcryptjs");
 const COOKIE = "thiqa_sid",
   ADMIN_COOKIE = "thiqa_admin_sid";
 const hash = (s) => crypto.createHash("sha256").update(s).digest("hex");
+/** قواعد كلمة المرور الموحّدة (التسجيل + إعادة التعيين). */
+function passwordErrors(password, confirmPassword) {
+  const errors = [];
+  if (
+    typeof password !== "string" ||
+    password.length < 8 ||
+    !/[A-Za-z]/.test(password) ||
+    !/[0-9]/.test(password)
+  )
+    errors.push({
+      field: "password",
+      message: "كلمة المرور 8 أحرف على الأقل وتحتوي حرفاً ورقماً",
+    });
+  if (password !== confirmPassword)
+    errors.push({
+      field: "confirm_password",
+      message: "كلمتا المرور غير متطابقتين",
+    });
+  return errors;
+}
 function issue(db, res, user, kind = "customer") {
   const token = crypto.randomBytes(32).toString("hex"),
     now = Math.floor(Date.now() / 1000),
@@ -64,21 +84,7 @@ function makeAuthRouter(db, rate) {
       });
     if (typeof email !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
       errors.push({ field: "email", message: "البريد الإلكتروني غير صحيح" });
-    if (
-      typeof password !== "string" ||
-      password.length < 8 ||
-      !/[A-Za-z]/.test(password) ||
-      !/[0-9]/.test(password)
-    )
-      errors.push({
-        field: "password",
-        message: "كلمة المرور 8 أحرف على الأقل وتحتوي حرفاً ورقماً",
-      });
-    if (password !== confirmPassword)
-      errors.push({
-        field: "confirm_password",
-        message: "كلمتا المرور غير متطابقتين",
-      });
+    errors.push(...passwordErrors(password, confirmPassword));
     if (errors.length)
       return res
         .status(422)
@@ -175,4 +181,5 @@ module.exports = {
   authenticate,
   makeAuthRouter,
   hash,
+  passwordErrors,
 };

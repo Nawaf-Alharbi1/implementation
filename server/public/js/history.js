@@ -69,7 +69,7 @@
       .querySelectorAll("[data-request]")
       .forEach((button) =>
         button.addEventListener("click", () =>
-          openDetail(button.dataset.request),
+          openDetail(button.dataset.request, button.dataset.seq),
         ),
       );
   }
@@ -85,7 +85,7 @@
       <article class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div class="space-y-1.5 min-w-0">
           <div class="flex flex-wrap items-center gap-2 text-xs">
-            <span class="font-black text-slate-400">#${esc(item.RequestId)}</span>
+            <span class="font-black text-slate-400" title="رقم الطلب ضمن طلباتك">#${esc(item.UserSeq ?? item.RequestId)}</span>
             ${TH.statusBadge(ok, "تمت التوصية", "فشل الطلب")}
             <span class="px-2 py-1 rounded-lg bg-slate-100 text-slate-600 font-bold">${esc(TH.coverageLabel(item.CoverageType))}</span>
             <span class="px-2 py-1 rounded-lg bg-slate-100 text-slate-600 font-bold">${esc(TH.priorityLabel(item.Priority))}</span>
@@ -102,7 +102,7 @@
                </div>`
               : ""
           }
-          <button type="button" data-request="${Number(item.RequestId)}"
+          <button type="button" data-request="${Number(item.RequestId)}" data-seq="${Number(item.UserSeq ?? item.RequestId)}"
             class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold">
             التفاصيل
           </button>
@@ -145,9 +145,10 @@
     modal.classList.add("hidden");
   }
 
-  async function openDetail(requestId) {
+  // requestId: المعرّف الداخلي (لجلب البيانات)، seq: رقم الطلب ضمن طلبات العميل (للعرض)
+  async function openDetail(requestId, seq) {
     document.getElementById("detail-title").textContent =
-      `تفاصيل الطلب #${requestId}`;
+      `تفاصيل الطلب #${seq || requestId}`;
     const body = document.getElementById("detail-body");
     body.innerHTML = `<div class="h-40 rounded-2xl bg-slate-100 animate-pulse"></div>`;
     modal.classList.remove("hidden");

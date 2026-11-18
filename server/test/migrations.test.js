@@ -3,8 +3,13 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const { DatabaseSync } = require("node:sqlite");
-const root =
-  "C:/Users/Hessah/AppData/Local/hermes/profiles/mimo-v2-6-pro/cache/scratch/thiqa";
+const root = fs.mkdtempSync(
+  path.join(require("node:os").tmpdir(), "thiqa-migrations-"),
+);
+// نسخة أرشيفية اختيارية من قاعدة البيانات القديمة (غير مرفقة بالمشروع)
+const archivedDb =
+  process.env.THIQA_ARCHIVED_DB ||
+  path.resolve(__dirname, "../../database/thiqa.db.orig");
 test("legacy-shaped migration retains profile, vehicle, request, quote, recommendation and explanation rows", (t) => {
   const dir = fs.mkdtempSync(path.join(root, "legacy-shape-"));
   const dbPath = path.join(dir, "legacy.sqlite");
@@ -80,8 +85,9 @@ test("legacy-shaped migration retains profile, vehicle, request, quote, recommen
 });
 
 test("migration is repeatable on the archived database without changing company/policy rows", (t) => {
-  const source = path.join(root, "imp/database/thiqa.db.orig");
-  assert.ok(fs.existsSync(source));
+  const source = archivedDb;
+  if (!fs.existsSync(source))
+    return t.skip("archived thiqa.db.orig not available on this machine");
   const dir = fs.mkdtempSync(path.join(root, "migration-"));
   const copy = path.join(dir, "copy.db");
   fs.copyFileSync(source, copy);

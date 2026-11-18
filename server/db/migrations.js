@@ -116,6 +116,10 @@ function migrate(db) {
       throw error;
     }
   }
+  // الجداول الجديدة بعد الإصدار الأول (مثل Password_Resets) تُنشأ هنا لقواعد البيانات الموجودة.
+  // CREATE ... IF NOT EXISTS آمنة: لا تمس أي جدول أو بيانات موجودة.
+  for (const sql of createTables) db.exec(sql);
+  for (const sql of indexes) db.exec(sql);
   // Legacy users need identity/hash preservation while removing only obsolete columns.
   const userColumns = db
     .prepare("PRAGMA table_info(Users)")

@@ -1347,7 +1347,7 @@ def _render_independent_company_site(provider_id: str) -> str:
                 </div>
 
                 <form onsubmit="submitPurchase(event)" class="space-y-4 text-xs">
-                    <!-- 1. بيانات المؤمن له والمركبة -->
+                    <!-- 1. بيانات العميل والمركبة -->
                     <div class="p-3.5 rounded-2xl border border-slate-200 space-y-3">
                         <h4 class="font-black text-slate-800 flex items-center gap-1.5">
                             <i class="fa-solid fa-user-check text-emerald-600"></i> 1. بيانات العميل والمركبة
@@ -1355,26 +1355,30 @@ def _render_independent_company_site(provider_id: str) -> str:
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
                                 <label class="font-bold block mb-1">اسم مالك الوثيقة <span class="text-red-500">*</span></label>
-                                <input type="text" id="chk-cust-name" required placeholder="أدخل الاسم الثلاثي" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold">
+                                <input type="text" id="chk-cust-name" placeholder="أدخل الاسم الثلاثي" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold">
+                                <p id="chk-cust-name-error" class="text-xs text-red-500 font-bold mt-1 hidden"></p>
                             </div>
                             <div>
                                 <label class="font-bold block mb-1">رقم الجوال <span class="text-red-500">*</span></label>
-                                <input type="tel" id="chk-cust-phone" required maxlength="10" placeholder="05XXXXXXXX" class="w-full px-3 py-2 rounded-xl border border-slate-200 font-mono text-xs font-bold">
+                                <input type="tel" id="chk-cust-phone" maxlength="10" placeholder="05XXXXXXXX" class="w-full px-3 py-2 rounded-xl border border-slate-200 font-mono text-xs font-bold">
+                                <p id="chk-cust-phone-error" class="text-xs text-red-500 font-bold mt-1 hidden"></p>
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-3">
                             <div>
                                 <label class="font-bold block mb-1">رقم الهوية / الإقامة <span class="text-red-500">*</span></label>
-                                <input type="text" id="chk-cust-id" required maxlength="10" placeholder="أدخل رقم الهوية" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 font-mono text-xs font-bold">
+                                <input type="text" id="chk-cust-id" maxlength="10" placeholder="أدخل رقم الهوية (10 أرقام)" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 font-mono text-xs font-bold">
+                                <p id="chk-cust-id-error" class="text-xs text-red-500 font-bold mt-1 hidden"></p>
                             </div>
                             <div>
                                 <label class="font-bold block mb-1">الرقم التسلسلي / VIN <span class="text-red-500">*</span></label>
-                                <input type="text" id="chk-cust-serial" required placeholder="أدخل الرقم التسلسلي" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 font-mono text-xs font-bold">
+                                <input type="text" id="chk-cust-serial" maxlength="17" placeholder="أدخل الرقم التسلسلي (17 خانة)" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 font-mono text-xs font-bold">
+                                <p id="chk-cust-serial-error" class="text-xs text-red-500 font-bold mt-1 hidden"></p>
                             </div>
                         </div>
                     </div>
 
-                    <!-- 2. بيانات البطاقة البنكية أثناء الدفع -->
+                    <!-- 2. بيانات البطاقة البنكية للدفع (مع قوائم اختيار الشهور والسنين) -->
                     <div class="p-4 rounded-2xl border-2 border-indigo-100 bg-indigo-50/30 space-y-3">
                         <div class="flex items-center justify-between">
                             <h4 class="font-black text-slate-900 flex items-center gap-1.5">
@@ -1398,27 +1402,59 @@ def _render_independent_company_site(provider_id: str) -> str:
                             </div>
                             <div>
                                 <label class="font-bold block mb-1">الاسم المطبوع على البطاقة <span class="text-red-500">*</span></label>
-                                <input type="text" id="chk-card-holder" required placeholder="الاسم كما يظهر على البطاقة" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-mono text-xs uppercase">
+                                <input type="text" id="chk-card-holder" placeholder="الاسم كما يظهر على البطاقة" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-mono text-xs uppercase">
+                                <p id="chk-card-holder-error" class="text-xs text-red-500 font-bold mt-1 hidden"></p>
                             </div>
                         </div>
 
                         <div>
                             <label class="font-bold block mb-1">رقم البطاقة البنكية (16 رقماً) <span class="text-red-500">*</span></label>
-                            <input type="text" id="chk-card-number" required maxlength="19" placeholder="XXXX XXXX XXXX XXXX" oninput="formatCardNumber(this)"
+                            <input type="text" id="chk-card-number" maxlength="19" placeholder="XXXX XXXX XXXX XXXX" oninput="formatCardNumber(this)"
                                 class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white font-mono text-sm tracking-widest font-bold">
+                            <p id="chk-card-number-error" class="text-xs text-red-500 font-bold mt-1 hidden"></p>
                         </div>
 
                         <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="font-bold block mb-1">تاريخ الانتهاء (MM/YY) <span class="text-red-500">*</span></label>
-                                <input type="text" id="chk-card-exp" required maxlength="5" placeholder="MM/YY" oninput="formatExpiry(this)"
-                                    class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-mono text-xs text-center font-bold">
+                                <label class="font-bold block mb-1">شهر الانتهاء <span class="text-red-500">*</span></label>
+                                <select id="chk-card-month" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-bold text-xs">
+                                    <option value="">اختر الشهر</option>
+                                    <option value="1">January (1)</option>
+                                    <option value="2">February (2)</option>
+                                    <option value="3">March (3)</option>
+                                    <option value="4">April (4)</option>
+                                    <option value="5">May (5)</option>
+                                    <option value="6">June (6)</option>
+                                    <option value="7">July (7)</option>
+                                    <option value="8">August (8)</option>
+                                    <option value="9">September (9)</option>
+                                    <option value="10">October (10)</option>
+                                    <option value="11">November (11)</option>
+                                    <option value="12">December (12)</option>
+                                </select>
+                                <p id="chk-card-month-error" class="text-xs text-red-500 font-bold mt-1 hidden"></p>
                             </div>
                             <div>
-                                <label class="font-bold block mb-1">رمز الأمان (CVV) <span class="text-red-500">*</span></label>
-                                <input type="password" id="chk-card-cvv" required maxlength="3" minlength="3" placeholder="CVV"
-                                    class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-mono text-xs text-center font-bold">
+                                <label class="font-bold block mb-1">سنة الانتهاء <span class="text-red-500">*</span></label>
+                                <select id="chk-card-year" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-bold text-xs font-mono">
+                                    <option value="">اختر السنة</option>
+                                    <option value="27">27</option>
+                                    <option value="28">28</option>
+                                    <option value="29">29</option>
+                                    <option value="30">30</option>
+                                    <option value="31">31</option>
+                                    <option value="32">32</option>
+                                    <option value="33">33</option>
+                                </select>
+                                <p id="chk-card-year-error" class="text-xs text-red-500 font-bold mt-1 hidden"></p>
                             </div>
+                        </div>
+
+                        <div>
+                            <label class="font-bold block mb-1">رمز الأمان (CVV) <span class="text-red-500">*</span></label>
+                            <input type="password" id="chk-card-cvv" maxlength="3" placeholder="CVV"
+                                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white font-mono text-xs text-center font-bold">
+                            <p id="chk-card-cvv-error" class="text-xs text-red-500 font-bold mt-1 hidden"></p>
                         </div>
                     </div>
 
@@ -1784,7 +1820,7 @@ def _render_independent_company_site(provider_id: str) -> str:
         }}
 
         function openCheckout(offerName, covType, basePrice) {{
-            const totalWithVat = Math.round(basePrice * 1.15);
+            const totalWithVat = Math.round(basePrice);
             const cid = document.getElementById('c-id').value.trim();
             const cserial = document.getElementById('c-serial').value.trim();
             const ccity = document.getElementById('c-city').value;
@@ -1813,22 +1849,101 @@ def _render_independent_company_site(provider_id: str) -> str:
             document.getElementById('checkout-modal').classList.add('hidden');
         }}
 
+        function clearCheckoutErrors() {{
+            ['chk-cust-name', 'chk-cust-phone', 'chk-cust-id', 'chk-cust-serial', 'chk-card-holder', 'chk-card-number', 'chk-card-month', 'chk-card-year', 'chk-card-cvv'].forEach(id => {{
+                const el = document.getElementById(id);
+                const errP = document.getElementById(id + '-error');
+                if (el) el.classList.remove('border-red-500', 'ring-2', 'ring-red-100');
+                if (errP) {{ errP.textContent = ''; errP.classList.add('hidden'); }}
+            }});
+        }}
+
+        function showCheckoutError(fieldId, message) {{
+            const el = document.getElementById(fieldId);
+            const errP = document.getElementById(fieldId + '-error');
+            if (el) el.classList.add('border-red-500', 'ring-2', 'ring-red-100');
+            if (errP) {{ errP.textContent = message; errP.classList.remove('hidden'); }}
+        }}
+
         async function submitPurchase(e) {{
             e.preventDefault();
-            const rawCard = document.getElementById('chk-card-number').value.replace(/\\D/g, '');
-            if (rawCard.length < 16) {{
-                alert('يرجى إدخال رقم بطاقة بنكية صحيح مكون من 16 رقماً');
-                return;
+            clearCheckoutErrors();
+
+            const name = document.getElementById('chk-cust-name').value.trim();
+            const phone = document.getElementById('chk-cust-phone').value.trim();
+            const nationalId = document.getElementById('chk-cust-id').value.trim();
+            const serial = document.getElementById('chk-cust-serial').value.trim();
+            const cardHolder = document.getElementById('chk-card-holder').value.trim();
+            const rawCard = document.getElementById('chk-card-number').value.replace(/\D/g, '');
+            const cardMonth = document.getElementById('chk-card-month').value;
+            const cardYear = document.getElementById('chk-card-year').value;
+            const cvv = document.getElementById('chk-card-cvv').value.trim();
+
+            let hasError = false;
+
+            if (!name) {{
+                showCheckoutError('chk-cust-name', 'يرجى إدخال اسم مالك الوثيقة ثلاثياً');
+                hasError = true;
             }}
+
+            // فحص رقم الجوال بالشروط المطلوبة بدقة
+            if (!phone.startsWith('05')) {{
+                showCheckoutError('chk-cust-phone', 'يجب ان يبدأ رقم الجوال ب05');
+                hasError = true;
+            }} else if (phone.length !== 10) {{
+                showCheckoutError('chk-cust-phone', 'يجب ان يتكون رقم الجوال من 10 ارقام');
+                hasError = true;
+            }}
+
+            // فحص الهوية الوطنية / الإقامة
+            if (!/^[12]\d{{9}}$/.test(nationalId)) {{
+                showCheckoutError('chk-cust-id', 'الهوية الوطنية أو الإقامة يجب أن تتكون من 10 أرقام وتبدأ بـ 1 أو 2');
+                hasError = true;
+            }}
+
+            // فحص الرقم التسلسلي للمركبة
+            if (!/^[A-Za-z0-9]{{17}}$/.test(serial)) {{
+                showCheckoutError('chk-cust-serial', 'الرقم التسلسلي للمركبة يجب أن يتكون من 17 خانة');
+                hasError = true;
+            }}
+
+            if (!cardHolder) {{
+                showCheckoutError('chk-card-holder', 'يرجى إدخال الاسم المطبوع على البطاقة البنكية');
+                hasError = true;
+            }}
+
+            if (rawCard.length !== 16) {{
+                showCheckoutError('chk-card-number', 'رقم البطاقة البنكية يجب أن يتكون من 16 رقماً صحيحاً');
+                hasError = true;
+            }}
+
+            if (!cardMonth) {{
+                showCheckoutError('chk-card-month', 'يرجى اختيار شهر الانتهاء');
+                hasError = true;
+            }}
+
+            if (!cardYear) {{
+                showCheckoutError('chk-card-year', 'يرجى اختيار سنة الانتهاء');
+                hasError = true;
+            }}
+
+            if (!/^\d{{3}}$/.test(cvv)) {{
+                showCheckoutError('chk-card-cvv', 'رمز الأمان (CVV) يجب أن يتكون من 3 أرقام');
+                hasError = true;
+            }}
+
+            if (hasError) return;
+
             const last4 = rawCard.slice(-4);
+            const expFormatted = `${{cardMonth.padStart(2, '0')}}/${{cardYear}}`;
 
             const body = {{
                 provider_id: PROVIDER_ID,
                 offer_name: activeOrder.offerName,
-                customer_name: document.getElementById('chk-cust-name').value.trim(),
-                national_id: document.getElementById('chk-cust-id').value.trim(),
-                phone: document.getElementById('chk-cust-phone').value.trim(),
-                vehicle_serial: document.getElementById('chk-cust-serial').value.trim(),
+                customer_name: name,
+                national_id: nationalId,
+                phone: phone,
+                vehicle_serial: serial,
                 city: activeOrder.city,
                 gender: activeOrder.gender,
                 has_accidents: activeOrder.has_accidents,
@@ -1838,11 +1953,19 @@ def _render_independent_company_site(provider_id: str) -> str:
                 payment_method: document.getElementById('chk-pay-method').value,
                 card_last4: last4
             }};
+
             const res = await fetch('/portal/api/purchase', {{
                 method: 'POST',
                 headers: {{ 'Content-Type': 'application/json' }},
                 body: JSON.stringify(body)
             }});
+
+            if (!res.ok) {{
+                const errData = await res.json().catch(() => ({{}}));
+                alert(errData.detail || 'تعذر إتمام عملية الشراء');
+                return;
+            }}
+
             const data = await res.json();
 
             document.getElementById('chk-form-box').classList.add('hidden');
@@ -1853,7 +1976,7 @@ def _render_independent_company_site(provider_id: str) -> str:
             document.getElementById('pol-risk-info').textContent =
                 `${{CITY_AR[data.city]}} - ${{GENDER_AR[data.gender]}} - ${{ACC_AR[data.has_accidents]}} - ${{CARS_AR[data.cars_count]}}`;
             document.getElementById('pol-of').textContent = `${{data.offer_name}} (${{data.coverage_type === 'Comprehensive' ? 'شامل' : 'ضد الغير'}})`;
-            document.getElementById('pol-dates').textContent = `من ${{data.issued_at}} إلى ${{data.expires_at}}`;
+            document.getElementById('pol-dates').textContent = `من ${{data.issued_at}} إلى ${{data.expires_at}} (انتهاء البطاقة: ${{expFormatted}})`;
             document.getElementById('pol-card').textContent = `${{data.payment_method}} - بطاقة تنتهي بـ **** ${{data.card_last4}}`;
             document.getElementById('pol-total').textContent = data.total_amount + ' ر.س';
 

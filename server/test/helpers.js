@@ -1,9 +1,10 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const http = require("node:http");
-const root =
-  "C:/Users/Hessah/AppData/Local/hermes/profiles/mimo-v2-6-pro/cache/scratch/thiqa";
-function makeHarness({ delayMs = 0, timeoutMs } = {}) {
+const os = require("node:os");
+// مجلد مؤقت مستقل عن جهاز المطوّر (كان مساراً ثابتاً لجهاز واحد فيفشل على غيره)
+const root = fs.mkdtempSync(path.join(os.tmpdir(), "thiqa-tests-"));
+function makeHarness({ delayMs = 0, timeoutMs, mailer } = {}) {
   const dir = fs.mkdtempSync(path.join(root, "helper-"));
   process.env.THIQA_DB_PATH = path.join(dir, "db.sqlite");
   const agent = http.createServer((req, res) => {
@@ -52,6 +53,7 @@ function makeHarness({ delayMs = 0, timeoutMs } = {}) {
           db,
           agentsUrl: process.env.AGENTS_SERVICE_URL,
           agentsTimeoutMs: timeoutMs,
+          ...(mailer ? { mailer } : {}),
         }).listen(0, () => {
           const base = `http://127.0.0.1:${server.address().port}`;
           resolve({

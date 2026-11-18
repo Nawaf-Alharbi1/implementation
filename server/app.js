@@ -7,6 +7,8 @@ const {
   bodyLimit,
 } = require("./config");
 const authRouter = require("./routes/auth");
+const passwordResetRouter = require("./routes/passwordReset");
+const defaultMailer = require("./services/mailer");
 const recommendRouter = require("./routes/recommend");
 const historyRouter = require("./routes/history");
 const adminRouter = require("./routes/admin");
@@ -14,6 +16,7 @@ function createApp({
   db,
   agentsUrl = defaultAgentsUrl,
   agentsTimeoutMs = defaultAgentsTimeoutMs,
+  mailer = defaultMailer,
 } = {}) {
   const app = express();
   const failures = new Map();
@@ -55,6 +58,7 @@ function createApp({
     }),
   );
   app.use("/api/auth", authRouter(db, rate));
+  app.use("/api/auth", passwordResetRouter({ db, rate, mailer }));
   app.use(
     "/api/recommend",
     recommendRouter({ db, agentsUrl, agentsTimeoutMs }),

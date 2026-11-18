@@ -10,9 +10,10 @@
     "create-admin": "node --disable-warning=ExperimentalWarning scripts/create-admin.js"
   },
   "dependencies": {
-    "express": "^4.22.3",
     "bcryptjs": "^3.0.2",
-    "cookie-parser": "^1.4.7"
+    "cookie-parser": "^1.4.7",
+    "express": "^4.22.3",
+    "nodemailer": "^10.5.0"
   },
   "engines": {
     "node": ">=22.13"

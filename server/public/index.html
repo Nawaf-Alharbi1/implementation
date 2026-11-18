@@ -167,13 +167,11 @@
                 <input
                   type="text"
                   id="idNumber"
-                  required
                   maxlength="10"
-                  minlength="10"
-                  pattern="[12][0-9]{9}"
                   placeholder="أدخل رقم الهوية أو الإقامة"
                   class="w-full px-4 py-3.5 rounded-2xl border border-slate-200 font-mono focus:outline-none focus:ring-2 focus:ring-brand-500"
                 />
+                <p id="idNumber-error-msg" class="text-xs text-red-500 font-bold mt-1.5 hidden"></p>
               </div>
 
               <div>
@@ -182,15 +180,14 @@
                   <span class="text-red-500">*</span></label
                 >
                 <input
-                  type="text"
-                  id="sequenceNumber"
-                  required
-                  minlength="6"
-                  maxlength="17"
-                  pattern="[A-Za-z0-9]{6,17}"
-                  placeholder="أدخل الرقم التسلسلي"
-                  class="w-full px-4 py-3.5 rounded-2xl border border-slate-200 font-mono focus:outline-none focus:ring-2 focus:ring-brand-500"
-                />
+                   type="text"
+                   id="sequenceNumber"
+                   maxlength="17"
+                    placeholder="أدخل الرقم التسلسلي (17 خانة)"
+                    class="w-full px-4 py-3.5 rounded-2xl border border-slate-200 font-mono focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  />
+                  <p id="sequenceNumber-error-msg" class="text-xs text-red-500 font-bold mt-1.5 hidden"></p>
+                  
               </div>
 
               <div>
@@ -367,10 +364,10 @@
                     required
                     class="py-3.5 px-3 rounded-2xl border border-slate-200 text-sm font-bold"
                   >
-                    <option value="Budget" selected>الأوفر سعراً</option>
-                    <option value="Service">جودة الخدمة والورش</option>
-                    <option value="Digital">التجربة الرقمية</option>
-                    <option value="Balanced">خيار متوازن</option>
+                    <option value="Budget" selected>السعر الأرخص والأكثر توفيراً</option>
+                    <option value="Service">جودة الإصلاح وتعدد خيارات الورش المعتمدة</option>
+                    <option value="Digital">خدمات رقمية سريعة وسلاسة في المطالبات والإسترداد</option>
+                    <option value="Balanced">التوازن الأمثل بين التكلفة والجودة</option>
                   </select>
                 </div>
               </div>
@@ -557,7 +554,7 @@
                 id="btn-p-Budget"
                 class="w-full text-right py-3.5 px-4 rounded-xl text-xs font-bold border transition flex items-center justify-between"
               >
-                <span>أوفر ميزانية وأقل سعر</span
+                <span>السعر الأرخص والأكثر توفيراً</span
                 ><i class="fa-solid fa-chevron-left"></i>
               </button>
               <button
@@ -565,7 +562,7 @@
                 id="btn-p-Service"
                 class="w-full text-right py-3.5 px-4 rounded-xl text-xs font-bold border transition flex items-center justify-between"
               >
-                <span>كفاءة الخدمة وسرعة المطالبة</span
+                <span>جودة الإصلاح وتعدد خيارات الورش المعتمدة</span
                 ><i class="fa-solid fa-chevron-left"></i>
               </button>
               <button
@@ -573,7 +570,7 @@
                 id="btn-p-Digital"
                 class="w-full text-right py-3.5 px-4 rounded-xl text-xs font-bold border transition flex items-center justify-between"
               >
-                <span>ميزات رقمية وتطبيق سهل</span
+                <span>خدمات رقمية سريعة وسلاسة في المطالبات والإسترداد</span
                 ><i class="fa-solid fa-chevron-left"></i>
               </button>
               <button
@@ -581,7 +578,7 @@
                 id="btn-p-Balanced"
                 class="w-full text-right py-3.5 px-4 rounded-xl text-xs font-bold border transition flex items-center justify-between"
               >
-                <span>القيمة مقابل السعر (متوازن)</span
+                <span>التوازن الأمثل بين التكلفة والجودة</span
                 ><i class="fa-solid fa-chevron-left"></i>
               </button>
             </div>
@@ -604,7 +601,46 @@
         <span>© 2026 منصة ثقة للتأمين الذكي. جميع الحقوق محفوظة.</span>
       </div>
     </footer>
+    <script>
+      // دالة مخصصة للتحقق من المدخلات وإظهار الأسباب في واجهة الأخطاء
+      function handleFormSubmit(event) {
+        event.preventDefault();
+        const idNumber = document.getElementById('idNumber').value.trim();
+        const sequenceNumber = document.getElementById('sequenceNumber').value.trim();
+        const errorDiv = document.getElementById('form-error');
 
+        // تحقق من رقم الهوية / الإقامة
+        if (idNumber.length < 10) {
+          errorDiv.textContent = ' رقم الهوية الوطنية أو الإقامة يجب أن يكون 10';
+          errorDiv.classList.remove('hidden');
+          errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          return;
+        }
+
+        // تحقق من الرقم التسلسلي / VIN
+        if (sequenceNumber.length < 17) {
+          errorDiv.textContent = 'الرقم التسلسلي للمركبة يجب ان لا يكون 17 رقما ';
+          errorDiv.classList.remove('hidden');
+          errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          return;
+        }
+
+        // إخفاء رسالة الخطأ في حال كانت المدخلات سليمة
+        errorDiv.classList.add('hidden');
+        
+        // استدعاء دالة الإرسال الأصلية الموجودة في ملفات المشروع إن وجدت
+        if (typeof window.originalHandleFormSubmit === 'function') {
+          window.originalHandleFormSubmit(event);
+        } else {
+          // محاكاة استمرار الإرسال أو التبديل لصفحة النتائج
+          console.log('المدخلات صحيحة، جاري إرسال البيانات...');
+          if (typeof switchTab === 'function') {
+            switchTab('tab-pipeline');
+            setTimeout(() => switchTab('tab-results'), 2000);
+          }
+        }
+      }
+    </script>
     <script src="/js/common.js"></script>
     <script src="/js/home.js"></script>
   </body>

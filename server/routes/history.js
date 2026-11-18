@@ -56,6 +56,15 @@ function details(db, requestId) {
     explanation,
   };
 }
+/** ترتيب الطلب بين طلبات نفس العميل فقط (أول طلب = 1). */
+function userSeq(db, userId, requestId) {
+  return db
+    .prepare(
+      "SELECT count(*) n FROM Quote_Requests q JOIN Customer_Profiles c USING(ProfileId) " +
+        "WHERE c.UserId=? AND q.RequestId<=?",
+    )
+    .get(userId, requestId).n;
+}
 function parse(value, fallback) {
   try {
     return value == null ? fallback : JSON.parse(value);
@@ -69,7 +78,10 @@ module.exports = (db) => {
     const { page, pageSize } = pageParams(req.query, 10);
     const items = db
       .prepare(
-        "SELECT q.RequestId,q.Timestamp,q.CoverageType,q.Priority,q.Status,q.ErrorMessage,(SELECT " +
+        // UserSeq: رقم الطلب الخاص بهذا العميل (1، 2، 3 ...) بدل الرقم العام في قاعدة البيانات
+        // الذي يتشارك فيه كل المستخدمين. ROW_NUMBER يُحسب قبل LIMIT فيبقى صحيحاً في كل الصفحات.
+        "SELECT ROW_NUMBER() OVER (ORDER BY q.RequestId) UserSeq," +
+          "q.RequestId,q.Timestamp,q.CoverageType,q.Priority,q.Status,q.ErrorMessage,(SELECT " +
           "p.ProviderName FROM Retrieved_Quotes x JOIN Insurance_Providers p USING(ProviderId) WHERE " +
           "x.RequestId=q.RequestId ORDER BY x.Rank LIMIT 1) ProviderName,(SELECT x.PlanName FROM " +
           "Retrieved_Quotes x WHERE x.RequestId=q.RequestId ORDER BY x.Rank LIMIT 1) PlanName,(SELECT " +
@@ -93,7 +105,9 @@ module.exports = (db) => {
       )
       .get(req.params.id, req.user.UserId);
     if (!exists) return res.status(404).json({ error: "غير موجود" });
-    res.json(details(db, req.params.id));
+    const data = details(db, req.params.id);
+    data.request.UserSeq = userSeq(db, req.user.UserId, Number(req.params.id));
+    res.json(data);
   });
   return r;
 };

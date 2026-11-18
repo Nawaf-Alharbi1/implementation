@@ -137,13 +137,13 @@ function validateRequestBody(body) {
   if (!/^[12]\d{9}$/.test(body.national_id)) {
     errors.push({
       field: "national_id",
-      message: "رقم الهوية/الإقامة 10 أرقام ويبدأ بـ 1 أو 2",
+      message: "الهوية الوطنية أو الإقامة يجب أن تتكون من 10 أرقام",
     });
   }
-  if (!/^[A-Za-z0-9]{6,17}$/.test(body.vehicle_serial)) {
+  if (!/^[A-Za-z0-9]{17}$/.test(body.vehicle_serial)) {
     errors.push({
       field: "vehicle_serial",
-      message: "الرقم التسلسلي 6–17 حرفاً إنجليزياً أو رقماً",
+      message: "الرقم التسلسلي للمركبة يجب أن يتكون من 17 رقماً",
     });
   }
   if (Number.isNaN(birth.getTime()) || age < 18 || age > 90) {
@@ -171,24 +171,45 @@ function validateRequestBody(body) {
 
 function clearFormErrors() {
   $("form-error").classList.add("hidden");
-  document.querySelectorAll("#insuranceForm .border-red-400").forEach((el) => {
-    el.classList.remove("border-red-400", "ring-2", "ring-red-100");
+  ["idNumber", "sequenceNumber"].forEach(id => {
+    const errP = $(id + "-error-msg");
+    if (errP) { 
+      errP.classList.add("hidden"); 
+      errP.textContent = ""; 
+    }
+    const el = $(id);
+    if (el) {
+      el.classList.remove("border-red-500", "ring-2", "ring-red-100");
+    }
   });
 }
 
 function showFormErrors(message, errors = []) {
-  const items = errors.map((e) => `<li>${esc(e.message)}</li>`).join("");
-  $("form-error").innerHTML = items
-    ? `<p class="mb-1">${esc(message)}</p><ul class="list-disc pr-5 font-medium">${items}</ul>`
-    : esc(message);
-  $("form-error").classList.remove("hidden");
-
   errors.forEach((error) => {
-    const element = $(FIELD_ELEMENTS[error.field]);
-    if (element)
-      element.classList.add("border-red-400", "ring-2", "ring-red-100");
+    const fieldKey = error.field; 
+    const elementId = FIELD_ELEMENTS[fieldKey]; 
+    
+    if (elementId) {
+      const element = $(elementId);
+      const errP = $(elementId + "-error-msg");
+      
+      if (element) {
+        element.classList.add("border-red-500", "ring-2", "ring-red-100");
+      }
+      if (errP) {
+        errP.textContent = error.message;
+        errP.classList.remove("hidden");
+      }
+    }
   });
-  $("form-error").scrollIntoView({ behavior: "smooth", block: "center" });
+  
+  if (errors.length === 0 && message) {
+    const globalErr = $("form-error");
+    if (globalErr) {
+      globalErr.textContent = message;
+      globalErr.classList.remove("hidden");
+    }
+  }
 }
 
 // ------------------------------------------------------------------ الإرسال

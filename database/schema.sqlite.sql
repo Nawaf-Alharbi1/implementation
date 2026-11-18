@@ -161,9 +161,24 @@ CREATE TABLE IF NOT EXISTS Audit_Log (
 );
 
 -- ---------------------------------------------------------------------
+-- 12) طلبات استعادة كلمة المرور (نسيت كلمة المرور)
+-- الرابط يُرسل للبريد ويُخزَّن هنا مشفّراً SHA-256 فقط، صالح لمرة واحدة ولمدة محدودة
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS Password_Resets (
+    ResetId     INTEGER PRIMARY KEY AUTOINCREMENT,
+    UserId      INTEGER NOT NULL REFERENCES Users(UserId) ON DELETE CASCADE,
+    TokenHash   TEXT    NOT NULL UNIQUE,
+    CreatedAt   INTEGER NOT NULL,                         -- epoch seconds
+    ExpiresAt   INTEGER NOT NULL,                         -- افتراضياً بعد 30 دقيقة
+    UsedAt      INTEGER,                                  -- NULL = لم يُستخدم بعد
+    RequestIp   TEXT
+);
+
+-- ---------------------------------------------------------------------
 -- الفهارس (لسرعة السجل والصفحات)
 -- ---------------------------------------------------------------------
 CREATE INDEX IF NOT EXISTS idx_sessions_expiry        ON Sessions(ExpiresAt);
 CREATE INDEX IF NOT EXISTS idx_requests_profile_time  ON Quote_Requests(ProfileId, Timestamp DESC);
 CREATE INDEX IF NOT EXISTS idx_quotes_request_rank    ON Retrieved_Quotes(RequestId, Rank);
 CREATE INDEX IF NOT EXISTS idx_audit_time             ON Audit_Log(CreatedAt DESC);
+CREATE INDEX IF NOT EXISTS idx_resets_user            ON Password_Resets(UserId, UsedAt);

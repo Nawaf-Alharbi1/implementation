@@ -21,6 +21,14 @@
     if (otherLink) otherLink.href += "?next=" + encodeURIComponent(nextParam);
   }
 
+  // رسالة نجاح بعد إعادة تعيين كلمة المرور (login.html?reset=1)
+  const successBox = document.getElementById("form-success");
+  if (successBox && new URLSearchParams(location.search).get("reset") === "1") {
+    successBox.textContent =
+      "تم تغيير كلمة المرور بنجاح. سجّل الدخول بكلمة المرور الجديدة.";
+    successBox.classList.remove("hidden");
+  }
+
   // إذا كان العميل مسجلاً مسبقاً لا داعي لعرض الصفحة
   TH.currentCustomer().then((user) => {
     if (user) location.replace(TH.safeNext());

@@ -4,10 +4,7 @@ const fs = require("node:fs"),
   path = require("node:path"),
   http = require("node:http");
 const tmp = fs.mkdtempSync(
-  path.join(
-    "C:/Users/Hessah/AppData/Local/hermes/profiles/mimo-v2-6-pro/cache/scratch/thiqa",
-    "test-",
-  ),
+  path.join(require("node:os").tmpdir(), "thiqa-test-"),
 );
 process.env.THIQA_DB_PATH = path.join(tmp, "test.db");
 process.env.AGENTS_SERVICE_URL = "http://127.0.0.1:3189";

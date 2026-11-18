@@ -59,7 +59,7 @@ cd agents && python -m uvicorn main:app --port 8000
 
 | Who | How |
 |---|---|
-| Customer | Register at `/register.html` (username, email, password ≥ 8 chars with a letter and a digit). |
+| Customer | Register at `/register.html` (username, email, password ≥ 8 chars with a letter and a digit). Forgot password: `/forgot-password.html` e-mails a single-use link valid 30 minutes (without SMTP the link is printed in the Node console). |
 | THIQA admin | Create once: `cd server && npm run create-admin -- --username admin --email admin@thiqa.local` (prompts for a password). Log in at `/admin/login.html`. Admin and customer logins are separate. |
 | Insurer staff (demo) | On each company site (e.g. `http://127.0.0.1:8001/tawuniya`): `tawuniya_admin / Tawuniya@2026`, `rajhi_admin / Rajhi@2026`, `medgulf_admin / Medgulf@2026`, `acig_admin / Acig@2026`. Override with `<PROVIDER>_PORTAL_USER` / `<PROVIDER>_PORTAL_PASSWORD` before the first start. |
 
@@ -67,7 +67,7 @@ cd agents && python -m uvicorn main:app --port 8000
 
 ```bat
 cd agents && python -m pytest tests -q      :: agents + mock insurers (258 tests)
-cd server && npm test                       :: website, auth, persistence, admin, migrations (20 tests)
+cd server && npm test                       :: website, auth, password reset, history, persistence, admin, migrations (25 tests)
 ```
 
 Tests use temporary databases and never touch `database/thiqa.db`.
@@ -81,6 +81,9 @@ Tests use temporary databases and never touch `database/thiqa.db`.
 | `AGENTS_SERVICE_URL` | Node | `http://127.0.0.1:8000` |
 | `INSURER_PLATFORM_URL` | Node (seeded endpoints, links) | `http://127.0.0.1:8001` |
 | `COOKIE_SECURE` | Node (set `1` behind HTTPS) | off |
+| `PUBLIC_BASE_URL` | Node (base of password-reset links) | `http://localhost:3000` |
+| `RESET_TOKEN_TTL_MINUTES` | Node (reset link lifetime) | `30` |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_SECURE`, `MAIL_FROM` | Node (sending reset e-mails) | unset → link printed in console |
 | `AGENTS_ALLOWED_ORIGINS` | agents CORS | `http://localhost:3000,http://127.0.0.1:3000` |
 | `INSURERS_DB_PATH` | insurer platform | `database/insurers_mock.db` |
 | `MOCK_FAULTS` | insurer platform (demo failures) | e.g. `rajhi=timeout,acig=500` |
